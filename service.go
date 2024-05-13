@@ -2,10 +2,33 @@ package go_service
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/kardianos/service"
 )
+
+// 切换工作目录到程序所在目录
+func ChangeWorkDir() {
+	pwd, _ := os.Getwd()
+
+	// 程序所在目录
+	execDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		log.Fatal(err)
+	}
+	if pwd == execDir {
+		// fmt.Println("不需要切换工作目录")
+		return
+	}
+	fmt.Println("切换工作目录", pwd, "->", execDir)
+	if err := os.Chdir(execDir); err != nil {
+		log.Fatal(err)
+	}
+	pwd, _ = os.Getwd()
+	fmt.Println("切换后工作目录:", pwd)
+}
 
 type Program struct {
 	RunFn func() //运行方法
@@ -13,6 +36,7 @@ type Program struct {
 
 func (p *Program) Start(s service.Service) error {
 	fmt.Print("服务运行...")
+	ChangeWorkDir()
 	go p.RunFn()
 	return nil
 }
